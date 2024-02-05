@@ -20,6 +20,7 @@ class SerialCommunicator(QMainWindow, Ui_MainWindow):
         self.baud_rates = {'4800': 4800, '9600': 9600, '19200': 19200, '38400': 38400, '115200': 115200}
         self.received_data_count = 0  # Variable to keep track of received data count
 
+        self.disconnect_Button.clicked.connect(self.disconnect_serial)  # Disconnect button
         # Update UI elements
         self.update_serial_ports()
         self.update_baudrate_combobox()
@@ -61,6 +62,17 @@ class SerialCommunicator(QMainWindow, Ui_MainWindow):
             self.serial_reader.start()
         except Exception as e:
             self.statusbar.showMessage(f"Failed to connect: {str(e)}")
+    def disconnect_serial(self):
+        if self.serial_port and self.serial_port.isOpen():
+            try:
+                self.serial_reader.terminate()  # Interrompe a thread de leitura
+                self.serial_reader.wait()  # Espera a thread ser concluída
+                self.serial_port.close()  # Fecha a porta serial
+                self.statusbar.showMessage("Disconnected from serial port.")
+            except Exception as e:
+                self.statusbar.showMessage(f"Failed to disconnect: {str(e)}")
+        else:
+            self.statusbar.showMessage("No active serial connection.")
 
     def send_data(self):
         # Send data to the serial port if it is open
@@ -85,7 +97,7 @@ class SerialCommunicator(QMainWindow, Ui_MainWindow):
             print("Erro ao converter a string para float.")
             return
 
-        # Adicionar o valor float aos dados do gráfico
+        # Add float value to graph 
         self.plot_data.append(float_value)
 
         # Update the plot with the new data
